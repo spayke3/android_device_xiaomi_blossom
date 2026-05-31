@@ -86,6 +86,7 @@ PRODUCT_PACKAGES += \
     init.mt6765.usb.rc \
     init.project.rc \
     init.sensor_1_0.rc \
+    init.zram.rc \
     ueventd.mtk.rc \
     init.angelica.volte.rc \
     init.angelican.volte.rc \
