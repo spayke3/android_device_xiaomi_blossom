@@ -158,16 +158,11 @@ PRODUCT_PACKAGES += \
     android.hardware.light-service.blossom
 
 # FM Radio
-ifeq ($(TARGET_INCLUDE_REVAMPED),true)
 PRODUCT_PACKAGES += \
-    RevampedFMRadio
-endif
-
-#Include ViaBrowser
-ifeq ($(TARGET_INCLUDE_VIA),true)
+    $(if $(filter true,$(TARGET_INCLUDE_REVAMPED)),RevampedFMRadio)
+# ViaBrowser
 PRODUCT_PACKAGES += \
-      ViaBrowser
-endif
+    $(if $(filter true,$(TARGET_INCLUDE_VIA)),ViaBrowser)
     
 # Display
 TARGET_SCREEN_DENSITY := 320
