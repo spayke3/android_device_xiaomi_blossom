@@ -74,6 +74,13 @@ prebuilt_etc {
 }
 
 prebuilt_etc {
+    name: "init.zram.rc",
+    src: "etc/init.zram.rc",
+    relative_install_path: "init/hw",
+    vendor: true,
+}
+
+prebuilt_etc {
     name: "ueventd.mtk.rc",
     src: "etc/ueventd.rc",
     filename_from_src: true,
