@@ -1,6 +1,6 @@
 cc_prebuilt_binary {
     check_elf_files: false,
-    name: "RemovePackages",
+    name: "RemovePackagesBlossom",
 
     overrides: [
         "AICorePrebuilt",
