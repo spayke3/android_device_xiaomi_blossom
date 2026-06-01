@@ -104,7 +104,8 @@ BOARD_KERNEL_CMDLINE += cgroup.memory=nokmem,nosocket
 BOARD_KERNEL_CMDLINE += nodebugmon
 BOARD_KERNEL_CMDLINE += noirqdebug
 BOARD_KERNEL_CMDLINE += kasan=off
-BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
+$(if $(filter true,$(TARGET_PERMISSIVE)),BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive)
+
 # Partitions
 BOARD_FLASH_BLOCK_SIZE := 131072 # (BOARD_KERNEL_PAGESIZE * 64)
 BOARD_BOOTIMAGE_PARTITION_SIZE := 67108864
