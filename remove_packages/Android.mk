@@ -11,7 +11,8 @@ LOCAL_OVERRIDES_PACKAGES := \
     PrebuiltGmail \
     YouTube \
     GameSpace \
-    OmniJaws
+    OmniJaws \
+    AxSandbox
 ifeq ($(BOMB_AUDIOFX),true)
 TARGET_EXCLUDES_AUDIOFX := true
 LOCAL_OVERRIDES_PACKAGES += \
