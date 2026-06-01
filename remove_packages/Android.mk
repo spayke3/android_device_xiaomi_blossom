@@ -9,7 +9,9 @@ LOCAL_OVERRIDES_PACKAGES := \
     Gmail2 \
     Maps \
     PrebuiltGmail \
-    YouTube
+    YouTube \
+    GameSpace \
+    OmniJaws
 ifeq ($(BOMB_AUDIOFX),true)
 TARGET_EXCLUDES_AUDIOFX := true
 LOCAL_OVERRIDES_PACKAGES += \
