@@ -232,6 +232,8 @@ PRODUCT_COPY_FILES += \
     $(call find-copy-subdir-files,*,$(LOCAL_PATH)/configs/props/system_ext,$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/properties) \
     $(call find-copy-subdir-files,*,$(LOCAL_PATH)/configs/props/vendor,$(TARGET_COPY_OUT_VENDOR)/etc/properties)
 
+
+
 # VNDK
 PRODUCT_PACKAGES += \
     libutils-v32 \
@@ -536,3 +538,8 @@ $(call inherit-product, vendor/xiaomi/blossom/blossom-vendor.mk)
 
 #Miui
 $(call inherit-product, vendor/xiaomi/miuicamera/MiuiCamera.mk)
+
+
+ifeq ($(TARGET_BUILD_VARIANT),eng)
+    PRODUCT_PROPERTY_OVERRIDES += ro.build.selinux=0
+endif
