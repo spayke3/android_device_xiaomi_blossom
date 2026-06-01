@@ -1,7 +1,6 @@
 cc_prebuilt_binary {
     check_elf_files: false,
     name: "RemovePackagesBlossom",
-
     overrides: [
         "AICorePrebuilt",
         "AiWallpapers",
@@ -69,10 +68,8 @@ cc_prebuilt_binary {
         "YouTube",
         "YouTubeMusicPrebuilt",
     ],
-
     strip: {
         none: true,
     },
-
     srcs: ["RemovePackagesBlossom"],
 }
