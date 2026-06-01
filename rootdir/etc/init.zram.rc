@@ -4,12 +4,12 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # zRAM Memory Expansion Configuration Script
-# Configures 2GB of zRAM by default for improved performance on low-memory devices
+# Configures 4GB of zRAM by default to reduce memory pressure
 
 on init
-    # Set up zRAM device with 2GB (2147483648 bytes)
+    # Set up zRAM device with 4GB (4294967296 bytes)
     # This creates virtual compressed memory space
-    write /sys/block/zram0/disksize 2147483648
+    write /sys/block/zram0/disksize 4294967296
     
 on late-init
     # Initialize swap
