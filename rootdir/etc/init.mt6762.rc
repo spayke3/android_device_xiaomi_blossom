@@ -694,6 +694,7 @@ service vendor.fps_hal /vendor/bin/hw/android.hardware.biometrics.fingerprint@2.
     class late_start
     user system
     group system input uhid
+    interface android.hardware.biometrics.fingerprint@2.1 IBiometricsFingerprint
     # writepid /dev/cpuset/system-background/tasks
 
 service vendor.focaltech.fps_hal /vendor/bin/hw/vendor.focaltech.fingerprint@1.0-service
