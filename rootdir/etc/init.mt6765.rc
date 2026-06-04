@@ -5,7 +5,8 @@ import /vendor/etc/init/hw/init.project.rc
 import /vendor/etc/init/hw/init.sensor_1_0.rc
 import /vendor/etc/init/hw/init.${ro.boot.hwname}.volte.rc
 import /vendor/etc/init/hw/init.modem.rc
-
+# FIX #4: Import biometrics init for proper HIDL service startup
+import /vendor/etc/init/hw/init.biometrics.rc
 on early-init
     write /proc/bootprof "0"
     write /proc/sys/kernel/printk "3 3 1 3"
@@ -13,6 +14,8 @@ on early-init
     setenforce 0
     endif
 on init
+    # FIX #2: Initialize secure directory for Android ID
+    mkdir /data/secure 0700 system system
     mkdir /mnt/vendor/protect_f 0771 system system
     mkdir /mnt/vendor/protect_s 0771 system system
     mkdir /mnt/vendor/nvcfg 0771 system system
@@ -105,6 +108,19 @@ on late-fs
     mount_all /vendor/etc/fstab.mt6765 --late
 
 on post-fs-data
+    # FIX #2: Ensure secure directory for Android ID
+    mkdir /data/secure 0700 system system
+    mkdir /data/secure/databases 0700 system system
+    restorecon_recursive /data/secure
+    
+    # FIX #2: Check and initialize Android ID if missing
+    exec /system/bin/logwrapper /system/bin/sh -c "\
+        if [ ! -f /data/secure/android_id ]; then \
+            echo '[INIT] Initializing Android ID...'; \
+            dd if=/dev/urandom of=/data/secure/android_id bs=1 count=16 2>/dev/null; \
+            chmod 600 /data/secure/android_id; \
+            chown system:system /data/secure/android_id; \
+        fi"
     chown system system /mnt/vendor/nvcfg
     chmod 0771 /mnt/vendor/nvcfg
     restorecon_recursive /mnt/vendor/nvcfg
@@ -188,6 +204,19 @@ on post-fs-data
     chown root system /data/vendor/flash
     chmod 0771 /data/vendor/flash
 
+        # modem_log_init
+    mkdir /data/vendor/log 0771 system system
+    restorecon_recursive /data/vendor/log
+
+    # Preinit MD
+    mkdir /data/mdl
+    chown radio system /data/mdl
+    chmod 0770 /data/mdl
+
+    # Log files
+    mkdir /data/log 0770 system log
+    restorecon_recursive /data/log
+
     # create shading mount point
     mkdir /data/vendor/shading
     chown root system /data/vendor/shading
@@ -228,9 +257,12 @@ on post-fs-data
     chmod 0660 /dev/gps_emi
 
     # Fingerprint
-    mkdir /data/vendor/focaltech 0760 system system
-    mkdir /data/vendor/fpc 0777 system system
-    restorecon /data/vendor/focaltech
+    mkdir /data/vendor/fingerprint 0770 system system
+    mkdir /data/vendor/fpc 0770 system system
+    mkdir /data/system/fingerprint 0770 system system
+    restorecon_recursive /data/vendor/fingerprint
+    restorecon_recursive /data/vendor/fpc
+    restorecon_recursive /data/system/fingerprint
 
     # SCP log
     chmod 0220 /sys/class/misc/scp/scp_mobile_log
@@ -248,6 +280,14 @@ on post-fs-data
 
     # Mali 3D GPU driver
     chmod 666 /dev/mali0
+
+    # NVRAM
+    mkdir /data/vendor/nvram 0771 root system
+    restorecon_recursive /data/vendor/nvram
+
+    # For power hal
+    mkdir /data/vendor/thermal 0771 root system
+    restorecon_recursive /data/vendor/thermal
 
     # Touch Panel
     chown root diag /sys/module/tpd_setting/parameters/tpd_calmat
@@ -293,6 +333,71 @@ on post-fs-data
     # VideoCodec
     chmod 0666 /dev/Vcodec
     chown mediacodec system /dev/Vcodec
+
+    
+    # WiFi
+    mkdir /data/vendor/wifi 0771 wifi wifi
+    mkdir /data/vendor/wifi/wpa 0770 wifi wifi
+    mkdir /data/vendor/wifi/wpa/sockets 0770 wifi wifi
+    mkdir /data/vendor/wlan 0771 wifi wifi
+    restorecon_recursive /data/vendor/wifi
+    restorecon_recursive /data/vendor/wlan
+
+     # BT
+    mkdir /data/vendor/bt 0771 bluetooth bluetooth
+    restorecon_recursive /data/vendor/bt
+    mkdir /data/vendor/gpsdata
+
+    chown system system /data/vendor/gpsdata
+    chmod 0770 /data/vendor/gpsdata
+    restorecon_recursive /data/vendor/gpsdata
+
+    # Telephony
+    mkdir /data/vendor/telephony 0755 radio radio
+    restorecon_recursive /data/vendor/telephony
+
+    # IMSA
+    mkdir /data/vendor/imsa 0755 radio system
+    mkdir /data/vendor/imsa/ca 0755 radio system
+    restorecon_recursive /data/vendor/imsa
+
+    # Modem
+    mkdir /data/vendor/modem_config 0700 radio system
+    restorecon_recursive /data/vendor/modem_config
+
+    # Create symlink
+    symlink /data/vendor/nvram /nvram
+    symlink /mnt/vendor/persist /persist
+
+    # Start mknod for FBT
+    mkdir /data/fbt_cpu
+    chown system system /data/fbt_cpu
+    chmod 0775 /data/fbt_cpu
+
+    # For NFC
+    mkdir /data/vendor/nfc 0770 nfc nfc
+    restorecon_recursive /data/vendor/nfc
+
+    # GNSS
+    mkdir /data/vendor/gnss 0771 gps system
+    restorecon_recursive /data/vendor/gnss
+
+    # IPO
+    mkdir /data/vendor/ipo 0771 system system
+    restorecon_recursive /data/vendor/ipo
+
+    
+    # Permission for THERMAL
+    chmod 0777 /proc/cci/
+    chown system system /proc/cci/
+
+    # IMS
+    chmod 0755 /sys/class/graphics/fb0
+    chown system graphics /sys/class/graphics/fb0
+    chmod 0755 /sys/devices/virtual/graphics/fb0
+    chown system graphics /sys/devices/virtual/graphics/fb0
+
+
 
     # Charging Battery
     chmod 0777 /sys/class/power_supply/battery/charging_enabled
@@ -680,6 +785,14 @@ on boot
 on boot
     # Power HAL
     setprop vendor.powerhal.init 1
+            # FIX #3: Network configuration - trigger net.change for DNS/network readiness
+    setprop net.change 1
+    
+    # Wait for network daemon to be ready
+    wait /dev/socket/netd
+    
+    # Make DNS configuration readable
+    chmod 0644 /etc/resolv.conf
 
 on init
     symlink /dev/block/platform/bootdevice /dev/block/bootdevice
@@ -688,18 +801,41 @@ on init
 on boot
     insmod /vendor/lib/modules/fpsgo.ko
 
-# Fingerprint
+============== FIX #4: HWBINDER/HIDL FRAMEWORK TRIGGER ==============
+on property:hwservicemanager.ready=true
+    # Signal that hwbinder/HIDL framework is ready
+    exec /system/bin/logwrapper /system/bin/sh -c "echo '[HWBINDER] Framework ready, starting biometric services' > /dev/kmsg"
+    setprop vendor.hwbinder.ready 1
+    setprop vendor.fps.prepare 1
+
+# ============== FIX #4: FINGERPRINT SERVICE WITH PROPER DEPENDENCIES ==============
+
+# Start fingerprint services after HIDL framework is confirmed ready
+on property:vendor.fps.prepare=1
+    wait /dev/socket/hwbinder 3
+    exec /system/bin/logwrapper /system/bin/sh -c "echo '[FINGERPRINT] Starting fingerprint services' > /dev/kmsg"
+    start vendor.fps_hal
+    start vendor.focaltech.fps_hal
+
+# FIX #4: Main fingerprint HAL service - DISABLED by default, started via property trigger
 service vendor.fps_hal /vendor/bin/hw/android.hardware.biometrics.fingerprint@2.1-service_blossom
-    class late_start
+    class hal
     user system
     group system input uhid
-    oneshot
-    # writepid /dev/cpuset/system-background/tasks
+    disabled
+    ioprio rt 4
+    # Define HIDL interface for framework communication
+    interface android.hardware.biometrics.fingerprint::IBiometricsFingerprint default
+
+# FIX #4: Secondary fingerprint provider - DISABLED by default
+
 
 service vendor.focaltech.fps_hal /vendor/bin/hw/vendor.focaltech.fingerprint@1.0-service
-    class late_start
+    class hal
     user system
-    group system
+    group system input
+    disabled
+    ioprio rt 4
 
 on property:ro.hardware.fp.restartimes=max
     stop vendor.fps_hal
@@ -717,6 +853,15 @@ service vendor.samsung_nfc_hal_service /vendor/bin/hw/android.hardware.nfc@1.2-s
 
 on property:sys.boot_completed=1
     # initialize powerHAL when boot is completed
+        # FIX #2: Validate Android ID after boot complete
+    exec /system/bin/logwrapper /system/bin/sh -c "\
+        ANDROID_ID=\$(cat /data/secure/android_id 2>/dev/null | wc -c); \
+        if [ \"\$ANDROID_ID\" -gt 1 ]; then \
+            echo '[ANDROID_ID] Successfully initialized'; \
+        else \
+            echo '[ANDROID_ID] WARNING: Not properly initialized'; \
+        fi"
+    
     setprop vendor.powerhal.init 1
 
 service vendor.charger /system/bin/charger

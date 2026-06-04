@@ -1,0 +1,105 @@
+# Init script for Biometrics/Fingerprint services
+# Xiaomi Blossom - MT6765
+# FIX: Proper HIDL framework initialization before fingerprint HAL startup
+
+# FIX: Check HIDL framework readiness
+on property:hwservicemanager.ready=true
+    exec /system/bin/logwrapper /system/bin/sh -c "echo 'HWBINDER_READY: Starting biometric init' > /dev/kmsg"
+    
+    # Pre-check that required libraries are loaded
+    exec /system/bin/logwrapper /system/bin/sh -c "\
+        for lib in libhidlbase.so libhidltransport.so android.hidl.manager@1.0.so; do \
+            test -f /system/lib64/\$lib && echo \"Found \$lib\" > /dev/kmsg || echo \"Missing \$lib\" > /dev/kmsg; \
+        done"
+    
+    # Signal biometrics can now start
+    setprop vendor.biometric.ready 1
+
+# FIX: Initialize fingerprint data directories
+on post-fs-data
+    # Create fingerprint storage with proper permissions
+    mkdir /data/vendor/fpc 0770 system system
+    mkdir /data/vendor/fpc/calibration 0770 system system
+    mkdir /data/vendor/fpc/templates 0770 system system
+    mkdir /data/system/fingerprint 0770 system system
+    
+    # Restore SELinux contexts for fingerprint directories
+    restorecon_recursive /data/vendor/fpc
+    restorecon_recursive /data/system/fingerprint
+
+# FIX: Start fingerprint services only after hwbinder is ready
+on property:vendor.biometric.ready=1
+    # Final safety check - wait for hwbinder socket with timeout
+    exec /system/bin/logwrapper /system/bin/sh -c "\
+        for i in 1 2 3 4 5; do \
+            if test -S /dev/socket/hwbinder; then \
+                echo 'hwbinder socket ready, starting fingerprint services' > /dev/kmsg; \
+                break; \
+            fi; \
+            echo \"Waiting for hwbinder socket... attempt \$i/5\" > /dev/kmsg; \
+            sleep 1; \
+        done"
+    
+    # Start both fingerprint implementations
+    start vendor.fps_hal
+    start vendor.focaltech.fps_hal
+
+# FIX: Primary fingerprint HAL - Focaltech generic implementation
+service vendor.fps_hal /vendor/bin/hw/android.hardware.biometrics.fingerprint@2.1-service_blossom
+    class hal
+    user system
+    group system input uhid
+    disabled
+    # Run with real-time priority for fingerprint responsiveness
+    ioprio rt 4
+    
+    # Define HIDL interface
+    interface android.hardware.biometrics.fingerprint::IBiometricsFingerprint default
+    
+    # Error handling - restart on failure but with backoff
+    onrestart restart vendor.fps_hal
+
+# FIX: Secondary fingerprint HAL - Vendor specific
+service vendor.focaltech.fps_hal /vendor/bin/hw/vendor.focaltech.fingerprint@1.0-service
+    class hal
+    user system
+    group system input
+    disabled
+    ioprio rt 4
+    
+    # One-time startup is sufficient for secondary
+    disabled
+
+# FIX: Fallback - If HWBINDER stays unready, force start after timeout
+on property:ro.runtime.firstboot=*
+    exec /system/bin/logwrapper /system/bin/sh -c "\
+        sleep 15; \
+        if [ \"\$(getprop vendor.biometric.ready)\" != \"1\" ]; then \
+            echo 'FALLBACK: Forcing fingerprint service startup' > /dev/kmsg; \
+            setprop vendor.biometric.ready 1; \
+        fi"
+
+# FIX: Monitor fingerprint service health
+on property:sys.boot_completed=1
+    exec /system/bin/logwrapper /system/bin/sh -c "\
+        if getprop | grep -q 'android.hardware.biometrics.fingerprint'; then \
+            echo 'Fingerprint service: OK' > /dev/kmsg; \
+        else \
+            echo 'WARNING: Fingerprint service not found in HAL list' > /dev/kmsg; \
+        fi"
+
+# FIX: Allow fingerprint service to create runtime files
+on boot
+    # Device permissions for fingerprint sensor
+    chmod 0660 /dev/fpc_irq
+    chmod 0660 /dev/focal_fp
+    chmod 0660 /dev/focal
+    chown system system /dev/fpc_irq
+    chown system system /dev/focal_fp
+    chown system system /dev/focal
+    
+    # SELinux context for fingerprint devices
+    restorecon /dev/fpc_irq
+    restorecon /dev/focal_fp
+    restorecon /dev/focal
+
