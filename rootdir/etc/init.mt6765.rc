@@ -690,11 +690,14 @@ on boot
 
 # Fingerprint
 service vendor.fps_hal /vendor/bin/hw/android.hardware.biometrics.fingerprint@2.1-service_blossom
-    class late_start
+    class hal
     user system
-    group system input uhid
-    oneshot
-    # writepid /dev/cpuset/system-background/tasks
+    group system input uhid drmrpc oem_5004
+    capabilities SYS_NICE
+    priority -20
+    ioprio rt 4
+    onrestart restart hwservicemanager
+    interface android.hardware.biometrics.fingerprint IBiometricsFingerprint default
 
 service vendor.focaltech.fps_hal /vendor/bin/hw/vendor.focaltech.fingerprint@1.0-service
     class late_start

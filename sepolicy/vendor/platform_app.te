@@ -1,1 +1,6 @@
 allow platform_app pm_archiving_enabled_prop:file read;
+# Allow system_app to access fingerprint HAL
+allow system_app hal_fingerprint_hwservice:hwservice_manager find;
+allow system_app hal_fingerprint:binder call;
+allow system_app hal_fingerprint:binder transfer;
+allow system_app vendor_fingerprint_service:service_manager find;
