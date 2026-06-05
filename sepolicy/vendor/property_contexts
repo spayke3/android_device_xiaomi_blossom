@@ -1,4 +1,2 @@
 # Camera
 persist.vendor.camera.                                  u:object_r:vendor_mtk_camera_prop:s0
-persist.fingerprint.service_available                   u:object_r:vendor_fingerprint_prop:s0
-ro.hardware.fingerprint                                 u:object_r:hal_fingerprint_prop:s0
