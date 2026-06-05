@@ -1,23 +1,20 @@
 typeattribute hal_fingerprint_default data_between_core_and_vendor_violators;
 
-# Allow fingerprint HAL to setup fingerprint database files
+# Allow fingerprint HAL to access its data files
 allow hal_fingerprint_default vendor_fingerprint_data_file:dir rw_dir_perms;
 allow hal_fingerprint_default vendor_fingerprint_data_file:file create_file_perms;
 
-# Allow fingerprint HAL to create netlink_kobject_uevent_socket
+# Allow fingerprint HAL to create netlink socket
 allow hal_fingerprint_default self:netlink_kobject_uevent_socket create_socket_perms_no_ioctl;
 
-# Enable HIDL service registration
+# CRITICAL: Enable HIDL service registration
 vndbinder_use(hal_fingerprint_default)
 hwbinder_use(hal_fingerprint_default)
 add_hwservice(hal_fingerprint_default, hal_fingerprint_hwservice)
 add_service(hal_fingerprint_default, vendor_fingerprint_service)
 
-# Allow fingerprint service to set properties
-allow hal_fingerprint_default hal_fingerprint_prop:property_service set;
-
-# Sysfs and proc access
-allow hal_fingerprint_default proc_ppm:dir r_dir_perms;
-allow hal_fingerprint_default proc_ppm:file rw_file_perms;
-allow hal_fingerprint_default sysfs_fingerprint:file rw_file_perms;
+# Hardware access
+allow hal_fingerprint_default sysfs:dir r_dir_perms;
+allow hal_fingerprint_default sysfs:file rw_file_perms;
 allow hal_fingerprint_default sysfs_fingerprint:dir r_dir_perms;
+allow hal_fingerprint_default sysfs_fingerprint:file rw_file_perms;
