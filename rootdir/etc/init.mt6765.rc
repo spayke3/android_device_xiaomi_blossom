@@ -688,24 +688,24 @@ on init
 on boot
     insmod /vendor/lib/modules/fpsgo.ko
 
-# Fingerprint
-service vendor.fps_hal /vendor/bin/hw/android.hardware.biometrics.fingerprint@2.1-service_blossom
-    class hal
-    user system
-    group system input uhid drmrpc oem_5004
-    capabilities SYS_NICE
-    priority -20
-    ioprio rt 4
-    onrestart restart hwservicemanager
-    interface android.hardware.biometrics.fingerprint IBiometricsFingerprint default
+# Fingerprint - DISABLED to fix logging issues
+# service vendor.fps_hal /vendor/bin/hw/android.hardware.biometrics.fingerprint@2.1-service_blossom
+#     class hal
+#     user system
+#     group system input uhid drmrpc oem_5004
+#     capabilities SYS_NICE
+#     priority -20
+#     ioprio rt 4
+#     onrestart restart hwservicemanager
+#     interface android.hardware.biometrics.fingerprint IBiometricsFingerprint default
 
-service vendor.focaltech.fps_hal /vendor/bin/hw/vendor.focaltech.fingerprint@1.0-service
-    class late_start
-    user system
-    group system
+# service vendor.focaltech.fps_hal /vendor/bin/hw/vendor.focaltech.fingerprint@1.0-service
+#     class late_start
+#     user system
+#     group system
 
-on property:ro.hardware.fp.restartimes=max
-    stop vendor.fps_hal
+# on property:ro.hardware.fp.restartimes=max
+#     stop vendor.fps_hal
 
 # NFC
 on property:ro.boot.hwname=angelican
