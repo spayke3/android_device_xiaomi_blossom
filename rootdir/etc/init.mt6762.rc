@@ -689,24 +689,38 @@ on init
 on boot
     insmod /vendor/lib/modules/fpsgo.ko
 
-# Fingerprint
+# ==========================================
+# Fingerprint HAL Service Declarations
+# ==========================================
+
 service vendor.fps_hal /vendor/bin/hw/android.hardware.biometrics.fingerprint@2.1-service_blossom
     class late_start
     user system
     group system input uhid
-    # Updated for Android 16: Ensure modern system server & framework are initialized
-    wait_for_prop sys.boot_completed 1
-    # writepid /dev/cpuset/system-background/tasks
+    disabled  # <-- Prevents it from firing too early and finding a null framework
 
 service vendor.focaltech.fps_hal /vendor/bin/hw/vendor.focaltech.fingerprint@1.0-service
     class late_start
     user system
     group system
-    # Updated for Android 16: Replaced dead hwservicemanager loop
-    wait_for_prop sys.boot_completed 1
+    disabled  # <-- Prevents it from firing too early
+
+# ==========================================
+# Android 16 Boot Trigger Action Block
+# ==========================================
+
+# When the system server & modern framework finish initializing, kick off the HALs
+on property:sys.boot_completed=1
+    start vendor.fps_hal
+    start vendor.focaltech.fps_hal
+
+# ==========================================
+# Error Recovery
+# ==========================================
 
 on property:ro.hardware.fp.restartimes=max
     stop vendor.fps_hal
+
 
 
 # NFC
