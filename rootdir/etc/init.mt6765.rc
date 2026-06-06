@@ -697,7 +697,7 @@ service vendor.fps_hal /vendor/bin/hw/android.hardware.biometrics.fingerprint@2.
     # This ensures HIDL infrastructure is ready before fingerprint service initializes
     # Fixes: "FingerprintUpdateActiveUserClient: Failed to setActiveGroup: HIDL daemon is null"
     # Fixes: "HidlToAidlSessionAdapter: Unable to set HIDL callback. HIDL daemon is null"
-    wait_for_prop init.svc.hwservicemanager started
+    wait_for_prop init.svc.hwservicemanager running
 
 service vendor.focaltech.fps_hal /vendor/bin/hw/vendor.focaltech.fingerprint@1.0-service
     class late_start
@@ -707,7 +707,7 @@ service vendor.focaltech.fps_hal /vendor/bin/hw/vendor.focaltech.fingerprint@1.0
     # This ensures HIDL infrastructure is ready before fingerprint service initializes
     # Fixes: "FingerprintUpdateActiveUserClient: Failed to setActiveGroup: HIDL daemon is null"
     # Fixes: "HidlToAidlSessionAdapter: Unable to set HIDL callback. HIDL daemon is null"
-    wait_for_prop init.svc.hwservicemanager started
+    wait_for_prop init.svc.hwservicemanager running
 
 on property:ro.hardware.fp.restartimes=max
     stop vendor.fps_hal
