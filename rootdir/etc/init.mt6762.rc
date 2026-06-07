@@ -697,12 +697,14 @@ service vendor.fps_hal /vendor/bin/hw/android.hardware.biometrics.fingerprint@2.
     class late_start
     user system
     group system input uhid
+    seclabel u:r:hal_fingerprint:s0    ← ADD THIS LINE
     disabled  # <-- Prevents it from firing too early and finding a null framework
 
 service vendor.focaltech.fps_hal /vendor/bin/hw/vendor.focaltech.fingerprint@1.0-service
     class late_start
     user system
     group system
+    seclabel u:r:hal_fingerprint:s0    ← ADD THIS LINE
     disabled  # <-- Prevents it from firing too early
 
 # ==========================================
