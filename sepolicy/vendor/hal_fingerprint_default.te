@@ -7,13 +7,31 @@ allow hal_fingerprint_default vendor_fingerprint_data_file:file create_file_perm
 # Allow fingerprint HAL to create netlink_kobject_uevent_socket
 allow hal_fingerprint_default self:netlink_kobject_uevent_socket create_socket_perms_no_ioctl;
 
+# Allow fingerprint HAL to register with hwservice_manager (CRITICAL FIX)
+binder_use(hal_fingerprint_default)
+hwbinder_use(hal_fingerprint_default)
+add_hwservice(hal_fingerprint_default, hal_fingerprint_hwservice)
+
+# Legacy service support
 vndbinder_use(hal_fingerprint_default)
-#add_hwservice(hal_fingerprint_default, hal_fingerprint_hwservice)
 add_service(hal_fingerprint_default, vendor_fingerprint_service)
 
+# Allow access to proc/sysfs for fingerprint operations
 allow hal_fingerprint_default proc_ppm:dir r_dir_perms;
 allow hal_fingerprint_default proc_ppm:file rw_file_perms;
 
- 
 allow hal_fingerprint_default sysfs_fingerprint:file rw_file_perms;
 allow hal_fingerprint_default sysfs_fingerprint:dir r_dir_perms;
+
+# Allow access to SPI device for fingerprint sensor
+allow hal_fingerprint_default sysfs_spi:file rw_file_perms;
+allow hal_fingerprint_default sysfs_spi:dir search;
+allow hal_fingerprint_default focaltech_fp_device:chr_file rw_file_perms;
+
+# Allow GPIO and interrupt access
+allow hal_fingerprint_default sysfs_gpio:file rw_file_perms;
+allow hal_fingerprint_default sysfs_gpio:dir search;
+
+# Allow hardware capability access
+allow hal_fingerprint_default self:capability { dac_override dac_read_search };
+allow hal_fingerprint_default self:capability2 syslog;

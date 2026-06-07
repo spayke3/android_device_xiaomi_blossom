@@ -1,12 +1,15 @@
 type sysfs_mtk_cpufreq, fs_type, sysfs_type;
 type sysfs_mtk_gpufreq, fs_type, sysfs_type;
 type sysfs_fingerprint, fs_type, sysfs_type;
+type sysfs_spi, fs_type, sysfs_type;
+type sysfs_gpio, fs_type, sysfs_type;
 
 # Firmware files
 type vendor_firmware_file, vendor_file_type, file_type;
 
 # Fingerprint
 type vendor_fingerprint_data_file, data_file_type, file_type;
+type focaltech_fp_device, dev_type;
 
 # Camera
 type persist_camera_data_file, data_file_type, file_type;

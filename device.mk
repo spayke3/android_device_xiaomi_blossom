@@ -157,6 +157,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.light-service.blossom
 
+# Fingerprint
+PRODUCT_PACKAGES += \
+    android.hardware.biometrics.fingerprint@2.1-service_blossom \
+    vendor.focaltech.fingerprint@1.0-service \
+    android.hardware.biometrics.fingerprint@2.1
+
 # FM Radio
 
 PRODUCT_PACKAGES += \
