@@ -44,13 +44,6 @@ allow hal_fingerprint_default self:capability { dac_override dac_read_search };
 allow hal_fingerprint_default self:capability2 syslog;
 
 # ========================================
-# Android 16 Specific: Property Service
-# ========================================
-# Some A16 configurations need property access
-allow hal_fingerprint_default vendor_fp_prop:property_service set;
-allow hal_fingerprint_default self:property_service set;
-
-# ========================================
 # Android 16 Specific: Socket Communication
 # ========================================
 allow hal_fingerprint_default self:unix_stream_socket create_stream_socket_perms;
