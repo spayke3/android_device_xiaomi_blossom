@@ -697,13 +697,15 @@ service vendor.fps_hal /vendor/bin/hw/android.hardware.biometrics.fingerprint@2.
     class late_start
     user system
     group system input uhid
-    seclabel u:r:hal_fingerprint:s0
+    seclabel u:r:hal_fingerprint:s0    ← ADDED
+    disabled  # <-- Prevents it from firing too early
 
 service vendor.focaltech.fps_hal /vendor/bin/hw/vendor.focaltech.fingerprint@1.0-service
     class late_start
     user system
     group system
-    seclabel u:r:hal_fingerprint:s0
+    seclabel u:r:hal_fingerprint:s0    ← ADDED
+    disabled  # <-- Prevents it from firing too early
 
 
 # ==========================================
@@ -730,6 +732,9 @@ service vendor.samsung_nfc_hal_service /vendor/bin/hw/android.hardware.nfc@1.2-s
 on property:sys.boot_completed=1
     # initialize powerHAL when boot is completed
     setprop vendor.powerhal.init 1
+    start vendor.fps_hal                ← ADDED
+    start vendor.focaltech.fps_hal      ← ADDED
+
 
 service vendor.charger /system/bin/charger
     class charger
